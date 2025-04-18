@@ -1,15 +1,14 @@
 use std::ffi::CString;
 use std::fs::{self, File};
-use std::io::{self, Read, Write};
+use std::io::{Read};
 use std::path::Path;
-use regex::Regex;
 
-use serde::Deserialize;
 use super::{MhyContext, MhyModule, ModuleType};
 use crate::marshal;
+use crate::util;
 use anyhow::{anyhow, Result};
 use ilhook::x64::Registers;
-use crate::util;
+use serde::Deserialize;
 
 const WEB_REQUEST_UTILS_MAKE_INITIAL_URL: &str = "55 41 56 56 57 53 48 81 EC ?? ?? ?? ?? 48 8D AC 24 ?? ?? ?? ?? 48 C7 45 ?? ?? ?? ?? ?? 48 89 D6 48 89 CF 48 8B 0D ?? ?? ?? ??";
 const BROWSER_LOAD_URL: &str = "41 B0 01 E9 08 00 00 00 0F 1F 84 00 00 00 00 00 56 57";
