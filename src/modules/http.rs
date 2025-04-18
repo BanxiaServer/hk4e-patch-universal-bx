@@ -10,6 +10,8 @@ const WEB_REQUEST_UTILS_MAKE_INITIAL_URL: &str = "55 41 56 56 57 53 48 81 EC ?? 
 const BROWSER_LOAD_URL: &str = "41 B0 01 E9 08 00 00 00 0F 1F 84 00 00 00 00 00 56 57";
 const BROWSER_LOAD_URL_OFFSET: usize = 0x10;
 
+const NEW_URL: String = String::from("http://192.168.1.200:21000");
+
 pub struct Http;
 
 impl MhyModule for MhyContext<Http> {
@@ -41,7 +43,7 @@ impl MhyModule for MhyContext<Http> {
         {
             println!("Failed to find browser_load_url");
         }
-        
+
         Ok(())
     }
 
@@ -49,23 +51,25 @@ impl MhyModule for MhyContext<Http> {
         Ok(())
     }
 
-    fn get_module_type(&self) -> super::ModuleType {
+    fn get_module_type(&self) -> ModuleType {
         ModuleType::Http
     }
 }
 
 unsafe extern "win64" fn on_make_initial_url(reg: *mut Registers, _: usize) {
     let str_length = *((*reg).rcx.wrapping_add(16) as *const u32);
-    let str_ptr = (*reg).rcx.wrapping_add(20) as *const u8;
+    let str_ptr = (*reg).rcx.wrapping_add(20) as *const u16;
 
-    let slice = std::slice::from_raw_parts(str_ptr, (str_length * 2) as usize);
-    let url = String::from_utf16le(slice).unwrap();
+    let slice = std::slice::from_raw_parts(str_ptr, str_length as usize);
+    let url: String = slice.iter().cloned().map(|u| char::from_u32(u as u32).unwrap()).collect();
 
-    let mut new_url = if url.contains("/query_region_list") {
-        String::from("http://127.0.0.1:21041")
-    } else {
-        String::from("http://127.0.0.1:21000")
-    };
+    // let mut new_url = if url.contains("/query_region_list") {
+    //     String::from("http://192.168.1.200:21041")
+    // } else {
+    //     String::from("http://192.168.1.200:21000")
+    // };
+
+    let mut new_url = NEW_URL;
 
     url.split('/').skip(3).for_each(|s| {
         new_url.push_str("/");
@@ -81,12 +85,12 @@ unsafe extern "win64" fn on_make_initial_url(reg: *mut Registers, _: usize) {
 
 unsafe extern "win64" fn on_browser_load_url(reg: *mut Registers, _: usize) {
     let str_length = *((*reg).rdx.wrapping_add(16) as *const u32);
-    let str_ptr = (*reg).rdx.wrapping_add(20) as *const u8;
+    let str_ptr = (*reg).rdx.wrapping_add(20) as *const u16;
 
-    let slice = std::slice::from_raw_parts(str_ptr, (str_length * 2) as usize);
-    let url = String::from_utf16le(slice).unwrap();
+    let slice = std::slice::from_raw_parts(str_ptr, str_length as usize);
+    let url: String = slice.iter().cloned().map(|u| char::from_u32(u as u32).unwrap()).collect();
 
-    let mut new_url = String::from("http://127.0.0.1:21000");
+    let mut new_url = NEW_URL;
     url.split('/').skip(3).for_each(|s| {
         new_url.push_str("/");
         new_url.push_str(s);
